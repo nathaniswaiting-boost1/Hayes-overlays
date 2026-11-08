@@ -1,3 +1,4 @@
+
 name: Build HAYES OVERLAYS APK
 
 on:
@@ -24,11 +25,13 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Extract project
+        run: unzip -q HAYES-OVERLAYS-Android-Project.zip -d .
 
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build APK
         run: |
