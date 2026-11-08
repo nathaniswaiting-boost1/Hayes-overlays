@@ -4,14 +4,15 @@ name: Build HAYES OVERLAYS APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -25,18 +26,21 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project
-        run: unzip -q HAYES-OVERLAYS-Android-Project.zip -d .
-
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+          SDKMANAGER=$(find "$ANDROID_HOME" -name sdkmanager -type f | head -n 1)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "SDK manager not found"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract app project
+        run: unzip -q HAYES-OVERLAYS-Android-Project.zip
 
       - name: Build APK
-        run: |
-          cd HAYES-OVERLAYS-Android
-          gradle assembleDebug
+        run: gradle -p HAYES-OVERLAYS-Android assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
